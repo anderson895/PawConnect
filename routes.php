@@ -6,9 +6,6 @@ include('api/config/class.php');
 $db = new global_class();
 
 
-// echo "<pre>";
-// print_r($_SESSION);
-// echo "</pre>";
 
 if (empty($_SESSION)) {
 
