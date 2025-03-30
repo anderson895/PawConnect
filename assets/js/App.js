@@ -4,6 +4,36 @@ $(document).ready(function () {
     
 
 
+    $("#FrmupdatePetInfo").submit(function (e) {
+        e.preventDefault();
+    
+        var formData = new FormData(this);
+        formData.append('requestType', 'updatePetInfo');
+        
+        $.ajax({
+            type: "POST",
+            url: "api/config/end-points/controller.php",
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function (response) {
+                console.log(response);
+    
+                if (response.status == "success") {
+                    alertify.success('Update Saved');
+                    setTimeout(function () {
+                       location.reload();
+                    }, 1000);
+                } else {
+                    alertify.error('Sending failed, please try again.');
+                }
+            }
+        });
+    });
+
+
+    
     $("#frmClaim").submit(function (e) {
         e.preventDefault();
     
@@ -92,8 +122,12 @@ $(document).ready(function () {
         formData.append('requestType', 'UpdatePetStatus');
     
         // Get the stored status value (Accept or Decline)
-        var status = $("#frmUpdatePetStatus").data("status") || 'accept_by_vet';
-        formData.append('status', status);
+        var changeStatus = $("#frmUpdatePetStatus").data("status") || 'accept_by_vet';
+        formData.append('status', changeStatus);
+
+
+        console.log(changeStatus);
+        
     
         $.ajax({
             type: "POST",
@@ -108,10 +142,12 @@ $(document).ready(function () {
                 $('#send-message').prop('disabled', false);
     
                 if (response.status == "success") {
-                    if (status === "accept_by_vet") {
-                        alertify.success('Accepted Successfully');
+
+                    
+                    if (changeStatus === "accept_by_vet") {
+                        alertify.success('Success');
                     } else {
-                        alertify.success('Declined Successfully');
+                        alertify.success('Success');
                     }
     
                     setTimeout(function () {
@@ -352,8 +388,6 @@ $(document).ready(function () {
 
 
 
-    
-
 
 
 
@@ -451,7 +485,126 @@ $(document).ready(function () {
 
 
 
+    
+    $("#AddlguAccountForm").submit(function (e) {
+        e.preventDefault();
 
+        let update_password = $("#password").val();
+        let update_confirmPassword = $("#confirmPassword").val();
+
+        if (update_password !== update_confirmPassword) {
+            alertify.error("Passwords do not match!"); 
+            return;
+        }
+    
+        $('.spinner').show();
+        $('.submit-btn').prop('disabled', true);
+    
+        var formData = new FormData(this);
+        formData.append('requestType', 'AddlguAccount');
+        
+        $.ajax({
+            type: "POST",
+            url: "api/config/end-points/controller.php",
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function (response) {
+                console.log(response);
+                $('.spinner').hide();
+                
+                if (response.status === "success") {
+                    $('.submit-btn').prop('disabled', false);
+                    alertify.success('Account Creation Successful');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alertify.error(response.message);
+                    $('.spinner').hide();
+                    $('.submit-btn').prop('disabled', false);
+                }
+            }
+        });
+    });
+    
+
+
+    $("#UpdatelguAccountForm").submit(function (e) {
+        e.preventDefault();
+
+        
+        let update_password = $("#update_password").val();
+        let update_confirmPassword = $("#update_confirmPassword").val();
+
+        if (update_password !== update_confirmPassword) {
+            alertify.error("Passwords do not match!"); 
+            return;
+        }
+    
+        $('.spinner').show();
+        $('.submit-btn').prop('disabled', true);
+    
+        var formData = new FormData(this);
+        formData.append('requestType', 'UpdatelguAccount');
+        
+        $.ajax({
+            type: "POST",
+            url: "api/config/end-points/controller.php",
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function (response) {
+                console.log(response);
+                $('.spinner').hide();
+                
+                if (response.status === "success") {
+                    $('.submit-btn').prop('disabled', false);
+                    alertify.success('Update Account Successful');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alertify.error(response.message);
+                    $('.spinner').hide();
+                    $('.submit-btn').prop('disabled', false);
+                }
+            }
+        });
+    });
+
+
+
+    $("#DeletelguAccountForm").submit(function (e) {
+        e.preventDefault();
+    
+        $('.spinner').show();
+        $('.submit-btn').prop('disabled', true);
+    
+        var formData = new FormData(this);
+        formData.append('requestType', 'DeletelguAccount');
+        
+        $.ajax({
+            type: "POST",
+            url: "api/config/end-points/controller.php",
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function (response) {
+                console.log(response);
+                $('.spinner').hide();
+                
+                if (response.status === "success") {
+                    $('.submit-btn').prop('disabled', false);
+                    alertify.success('Deleting Account Successful');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alertify.error(response.message);
+                    $('.spinner').hide();
+                    $('.submit-btn').prop('disabled', false);
+                }
+            }
+        });
+    });
 
 
 
@@ -488,6 +641,8 @@ $(document).ready(function () {
                             window.location.href = "index.php?lgupages=LGUHome";
                         }else if (data.data.Role === "admin") {
                             window.location.href = "index.php?page=home";
+                        }else if(data.data.Role==="superAdmin"){
+                            window.location.href = "index.php?adminPages=adminHome";
                         }
                     }, 2000);  
     

@@ -1,21 +1,16 @@
-
 <nav>
     
     <div class="navbar">
         <i class="bx bx-menu sidebarOpen"></i>
-        <span class="logo navLogo"><a href="index.php?page=/"><img src="assets/imgs/Logo.png" id="logo" alt="Logo"></a></span>
+        <span class="logo navLogo"><a href="index.php?adminPages=adminHome"><img src="assets/imgs/Logo.png" id="logo" alt="Logo"></a></span>
         <div class="menu">
             <div class="logo-toggle">
-                <span class="logo"><a href="index.php?page=/"><span>My</span>Pet</a></span>
+                <span class="logo"><a href="#"><span>My</span>Pet</a></span>
                 <i class="bx bx-x sidebarClose"></i>
             </div>
             <ul class="nav-links">
-                <li><a href="index.php?page=/">Home</a></li>
-                <li><a href="index.php?page=pets">Register</a></li>
-                <li><a href="index.php?page=MyPets">Pets</a></li>
-                <li><a href="index.php?page=ImpoundedPets">Impounded</a></li>
-                <li><a href="index.php?page=info">Info</a></li>
-                <li><a href="index.php?page=aboutus">About Us</a></li>
+                <li><a href="index.php?adminPages=adminHome">Home</a></li>
+                <li><a href="index.php?adminPages=addLgu">LGU</a></li>
             </ul>
         </div>
         <div class="darkLight-searchBox">
@@ -38,8 +33,6 @@
     </div>
 </nav>
 
-
-
 <style>
 /* Styling for search results */
 #userResults {
@@ -52,7 +45,7 @@
     overflow-y: auto;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     display: none;
-    top: 50px; /* Ibaba ang dropdown mula sa search input */
+    top: 50px; 
     left: 0;
     z-index: 1000;
 }
@@ -81,13 +74,12 @@
 
 
 <input hidden type="text" id="session_Role" value="<?=$_SESSION['Role']?>">
+
 <script>
 $(document).ready(function() {
     $("#searchUser").on("keyup", function() {
         let query = $(this).val().trim();
-
         let session_Role = $("#session_Role").val();
-      
         if (query !== "") {
             $.ajax({
                 url: "api/config/end-points/search_users.php",

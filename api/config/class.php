@@ -9,6 +9,29 @@ class global_class extends db_connect
         $this->connect();
     }
 
+        // Check if email exists
+        public function get_vaccination_history($petId)
+        {
+            $query = "SELECT * FROM pets_info_history_update WHERE ph_pet_id = ? ORDER BY ph_update_at DESC";
+            $stmt = $this->conn->prepare($query);
+    
+            if (!$stmt) {
+                error_log("Prepare failed: " . $this->conn->error);
+                return false;
+            }
+    
+            $stmt->bind_param("i", $petId);
+            if (!$stmt->execute()) {
+                error_log("Execute failed: " . $stmt->error);
+                return false;
+            }
+    
+            $result = $stmt->get_result();
+            return $result;
+        }
+
+
+
     // Check if email exists
 public function checkEmailExists($email) {
     $query = "SELECT Email FROM users WHERE Email = ?";
@@ -536,6 +559,39 @@ public function UpdatePassword($hashedPassword, $email) {
 
 
 
+    public function updatePetInfo($pet_id, $vaccine_given, $vaccine_due)
+{
+    // Fetch the previous vaccination dates before updating
+    $query = $this->conn->prepare("SELECT pet_antiRabies_vac_date, pet_antiRabies_expi_date FROM pets_info WHERE pet_id = ?");
+    $query->bind_param("s", $pet_id);
+    $query->execute();
+    $result = $query->get_result();
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $prev_vac_date = $row['pet_antiRabies_vac_date'];
+        $prev_expi_date = $row['pet_antiRabies_expi_date'];
+
+        // Insert into history table
+        $history_stmt = $this->conn->prepare("INSERT INTO pets_info_history_update (ph_pet_id, ph_pet_antiRabies_vac_date, ph_pet_antiRabies_expi_date, ph_update_at) VALUES (?, ?, ?, NOW())");
+        $history_stmt->bind_param("sss", $pet_id, $prev_vac_date, $prev_expi_date);
+        $history_stmt->execute();
+    }
+
+    // Update pet's vaccine records
+    $stmt = $this->conn->prepare("UPDATE pets_info SET pet_antiRabies_expi_date = ?, pet_antiRabies_vac_date = ? WHERE pet_id = ?");
+    $stmt->bind_param("sss", $vaccine_due, $vaccine_given, $pet_id);
+
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success']);
+    } else {
+        error_log("Update error: " . $stmt->error);
+        echo json_encode(['status' => 'error', 'message' => 'Unable to update']);
+    }
+}
+
+
+
 
 
 
@@ -682,6 +738,17 @@ public function UpdatePassword($hashedPassword, $email) {
     }
 
 
+    public function fetch_user($role)
+    {
+        $query = $this->conn->prepare("SELECT * from users where `Role`='$role' AND `status`!='2'");
+
+        if ($query->execute()) {
+            $result = $query->get_result();
+            return $result;
+        }
+    }
+
+
 
     public function fetch_all_vet()
     {
@@ -780,7 +847,7 @@ public function UpdatePassword($hashedPassword, $email) {
 
 
 
-    public function getAllNotificationCount()
+    public function getAllNotificationCount($UserID)
     {
         // Query for expiring and expired vaccinations
         $query = $this->conn->prepare("
@@ -836,7 +903,7 @@ public function UpdatePassword($hashedPassword, $email) {
         $query4 = $this->conn->prepare("
             SELECT COUNT(*) AS unseen_messages
             FROM chat_messages
-            WHERE message_seen = 0
+            WHERE message_seen = 0 AND receiver_id=$UserID
         ");
     
         $unseen_messages = 0;
@@ -877,6 +944,17 @@ public function UpdatePassword($hashedPassword, $email) {
 
 
     public function fetch_all_pets_info()
+    {
+        $query = $this->conn->prepare("SELECT * from pets_info where pet_status ='accept_by_lgu' OR pet_status ='declined_by_lgu' OR pet_status ='declined_by_vet' OR pet_status ='accept_by_vet'");
+
+        if ($query->execute()) {
+            $result = $query->get_result();
+            return $result;
+        }
+    }
+
+
+    public function fetch_lgu_registered_pet()
     {
         $query = $this->conn->prepare("SELECT * from pets_info where pet_status ='accept_by_lgu' OR pet_status ='declined_by_lgu'");
 
@@ -958,6 +1036,129 @@ public function UpdatePassword($hashedPassword, $email) {
     }
 }
 
+
+
+
+public function UpdatelguAccount($lguId, $username, $fullName, $email, $address, $password)
+{
+    // Initialize base query
+    $query = "UPDATE `users` SET `Name` = ?, `Username` = ?, `Email` = ?, `Address` = ? ";
+    $params = [$fullName, $username, $email, $address]; // Initial parameters
+
+    // Check if password is provided
+    if (!empty($password)) {
+        $hashedPassword = hash('sha256', $password);
+        $query .= ", `Password` = ? ";
+        $params[] = $hashedPassword;
+    }
+
+    $query .= "WHERE `UserID` = ?";
+    $params[] = $lguId;
+
+    // Prepare statement
+    $stmt = $this->conn->prepare($query);
+
+    if (!$stmt) {
+        die(json_encode(array('status' => 'error', 'message' => 'Database error: ' . $this->conn->error)));
+    }
+
+    // Bind parameters dynamically
+    $types = str_repeat("s", count($params) - 1) . "i"; // Generate types dynamically (last parameter is integer)
+    $stmt->bind_param($types, ...$params);
+
+    // Execute and check
+    if ($stmt->execute()) {
+        echo json_encode(array('status' => 'success', 'message' => 'Account updated successfully'));
+    } else {
+        echo json_encode(array('status' => 'error', 'message' => 'Unable to update account'));
+    }
+
+    $stmt->close();
+}
+
+
+
+
+public function DeletelguAccount($lguId)
+{
+    // Prepare the UPDATE query
+    $stmt = $this->conn->prepare("UPDATE `users` SET `status` = '2' WHERE `UserID` = ?");
+
+    $stmt->bind_param("i",$lguId);
+
+    if ($stmt->execute()) {
+        echo json_encode(array('status' => 'success', 'message' => 'Account updated successfully'));
+    } else {
+        echo json_encode(array('status' => 'error', 'message' => 'Unable to update account'));
+    }
+
+    $stmt->close();
+}
+
+
+
+
+
+public function AddlguAccount($username, $fullName, $email, $address, $password)
+{
+    // Check if the email already exists
+    $stmt = $this->conn->prepare("SELECT * FROM `users` WHERE `Email` = ?");
+    if (!$stmt) {
+        die(json_encode(array('status' => 'error', 'message' => 'Database error: ' . $this->conn->error)));
+    }
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        echo json_encode(array('status' => 'email_already', 'message' => 'Email already exists'));
+        $stmt->close();
+        return;
+    }
+    $stmt->close();
+
+    // Check if the username already exists
+    $stmt = $this->conn->prepare("SELECT * FROM `users` WHERE `Username` = ?");
+    if (!$stmt) {
+        die(json_encode(array('status' => 'error', 'message' => 'Database error: ' . $this->conn->error)));
+    }
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        echo json_encode(array('status' => 'username_already', 'message' => 'Username already exists'));
+        $stmt->close();
+        return;
+    }
+    $stmt->close();
+
+    // Hash the password using SHA-256
+    $hashedPassword = hash('sha256', $password);
+
+    // Insert the new user into the database
+    $stmt = $this->conn->prepare("INSERT INTO `users` (`Name`, `Username`, `Email`, `Address`, `Password`, `Role`, `status`) VALUES (?, ?, ?, ?, ?, ?, '1')");
+    
+    if (!$stmt) {
+        die(json_encode(array('status' => 'error', 'message' => 'Database error: ' . $this->conn->error)));
+    }
+
+    $role = "lgu"; // Define role separately
+    $stmt->bind_param("ssssss", $fullName, $username, $email, $address, $hashedPassword, $role);
+
+    if ($stmt->execute()) {
+        $userId = $this->conn->insert_id;
+        $stmt->close();
+
+
+        echo json_encode(array('status' => 'success', 'id' => $userId));
+    } else {
+        echo json_encode(array('status' => 'error', 'message' => 'Unable to create account'));
+        $stmt->close();
+    }
+}
+
+
     
 
 
@@ -968,7 +1169,7 @@ public function UpdatePassword($hashedPassword, $email) {
     $hashedPassword = hash('sha256', $password);
     
     // Prepare the SQL query
-    $query = $this->conn->prepare("SELECT * FROM `users` WHERE `Username` = ? AND `Password` = ? AND status = '1'");
+    $query = $this->conn->prepare("SELECT * FROM `users` WHERE `Username` = ? AND `Password` = ? AND `status` != '2'");
     
     // Bind the username and the hashed password
     $query->bind_param("ss", $username, $hashedPassword);

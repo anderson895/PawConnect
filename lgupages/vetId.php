@@ -6,9 +6,8 @@
         <input type="text" id="searchBox" placeholder="Search by email, username...">
         <select id="statusFilter">
             <option value="all">All</option>
-            <option value="approved">Approved</option>
-            <option value="declined">Declined</option>
-            <option value="pending">Pending</option>
+            <option value="Verified">Verified</option>
+            <option value="Declined">Declined</option>
         </select>
     </div>
 
@@ -127,7 +126,7 @@ function updateVetStatus(status) {
             console.log(response);
 
             if (response.status === "success") {
-                alertify.success('Request Sent');
+                alertify.success('Success');
                 setTimeout(function () {
                     location.reload();
                 }, 1000);

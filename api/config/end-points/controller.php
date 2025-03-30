@@ -512,6 +512,15 @@ if ($response == "success") {
 
             echo $db->ClaimPet($imp_id,$UserID);
             
+        }else if ($_POST['requestType'] == 'updatePetInfo') {
+
+            $vaccine_due=$_POST['update_client-vaccine-due'];
+            $vaccine_given=$_POST['update_client-vaccine-given'];
+            $pet_id=$_POST['pet_id'];
+          
+
+            echo $db->updatePetInfo($pet_id,$vaccine_given,$vaccine_due);
+            
         }else if ($_POST['requestType'] == 'VerifiedVet') {
             session_start();
             
@@ -564,6 +573,36 @@ if ($response == "success") {
 
 
             
+        }else if ($_POST['requestType'] == 'AddlguAccount') {
+
+
+           
+         
+            $username = $_POST['username'];
+            $fullName = $_POST['fullName'];
+            $email = $_POST['email'];
+            $address = $_POST['address'];
+            $password = $_POST['password'];
+
+            // Call signup function and include vet_license_filename if available
+            echo $db->AddlguAccount($username,$fullName,$email,$address,$password);
+            
+
+
+            
+        }else if ($_POST['requestType'] == 'UpdatelguAccount') {
+            $lguId = $_POST['lguId'];
+            $username = $_POST['username'];
+            $fullName = $_POST['fullName'];
+            $email = $_POST['email'];
+            $address = $_POST['address'];
+            $password = $_POST['password'];
+            echo $db->UpdatelguAccount($lguId,$username,$fullName,$email,$address,$password);
+
+        }else if ($_POST['requestType'] == 'DeletelguAccount') {
+            $lguId = $_POST['lguId'];
+            echo $db->DeletelguAccount($lguId);
+            
         }else if ($_POST['requestType'] == 'DeletePost') {
 
             $deletepostid=$_POST['deletepostid'];
@@ -593,30 +632,7 @@ if ($response == "success") {
                 // Return JSON error response
                 echo json_encode([
                     'status' => 'error',
-                    'message' => 'Invalid Email or password'
-                ]);
-            }
-        }else if ($_POST['requestType'] == 'LoginAdmin') {
-
-           
-            $email = $_POST['email'];
-            $password = $_POST['password'];
-
-            $user = $db->LoginAdmin($email, $password);
-
-            // Check if login was successful
-            if ($user) {
-                // Convert the result to JSON format to echo as a response
-                echo json_encode([
-                    'status' => 'success',
-                    'message' => 'Login successful',
-                    'data' => $user
-                ]);
-            } else {
-                // Return JSON error response
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Invalid Email or password'
+                    'message' => 'Invalid Username or password'
                 ]);
             }
         }else if ($_POST['requestType'] == 'EditPost') {
