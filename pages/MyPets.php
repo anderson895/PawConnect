@@ -1,6 +1,76 @@
 <input type="hidden" id="UserID" name="UserID" value="<?= $_SESSION['UserID']?>">
 <input type="hidden" id="username" name="username" value="<?= $_SESSION['username']?>">
-<input type="hidden" id="ProfilePic" name="ProfilePic" value="<?= isset($_SESSION['ProfilePic']) && $_SESSION['ProfilePic'] ? "uploads/images/" . $_SESSION['ProfilePic'] : "assets/imgs/User-Profile.png" ?>" alt="Profile Image">
+<input type="hidden" id="ProfilePic" name="ProfilePic" value="<?= isset($_SESSION['ProfilePic']) && $_SESSION['ProfilePic'] ? "uploads/images/" . $_SESSION['ProfilePic'] : "../assets/imgs/User-Profile.png" ?>" alt="Profile Image">
+
+<style>
+   @media print {
+    body * {
+        display: none !important;
+    }
+    .qr-print-image {
+        display: block !important;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0;
+        padding: 0;
+        border: none;
+        background: none;
+    }
+    
+    /* Hide all modals explicitly */
+    .approval-modal,
+    .modal {
+        display: none !important;
+        visibility: hidden !important;
+    }
+}
+
+.custom-size-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    z-index: 1000;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.custom-size-modal h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.custom-size-modal input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.custom-size-modal button {
+    padding: 8px 15px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.custom-size-modal .cancel-custom-size {
+    background-color: #dc3545;
+    color: white;
+}
+
+.custom-size-modal .confirm-custom-size {
+    background-color: #28a745;
+    color: white;
+}
+</style>
 
 <section>
     <h1 class="heading">My <span>Pets</span></h1>
@@ -27,18 +97,36 @@
           foreach ($fetch_pets as $pets):
 
             $QRCODE = "
-            <div class='qr-code-container' style='display: flex; flex-direction: column; align-items: center; gap: 10px;'>
-                <div id='qr-code-1' class='qr-placeholder' 
-                    style='width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc; background-color: #f9f9f9;'>
-                    <img id='qr-image' src='qrcodes/{$pets['pet_qr_code']}' alt='QR Code' style='max-width: 100%; height: auto;'>
-                </div>
-        
-                <a id='download-qr' href='qrcodes/{$pets['pet_qr_code']}' download='{$pets['pet_qr_code']}' target='_blank'
-                    style='padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px; text-decoration: none; text-align: center;'>
-                    Download QR Code
-                </a>
-            </div>
-            ";
+<div class='qr-code-container' style='display: flex; flex-direction: column; align-items: center; gap: 10px;'>
+    <div id='qr-code-1' class='qr-placeholder' 
+        style='width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc; background-color: #f9f9f9;'>
+        <img id='qr-image' src='qrcodes/{$pets['pet_qr_code']}' alt='QR Code' style='max-width: 100%; height: auto;'>
+    </div>
+
+    <button class='print-qr-btn custom-size-btn'
+        data-qr-src='qrcodes/{$pets['pet_qr_code']}'
+        style='padding: 8px 12px; background-color: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px;'>
+        Print QR Code
+    </button>
+</div>
+
+<!-- Custom Size Modal -->
+<div class='custom-size-modal' style='display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; z-index: 1000; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.3);'>
+    <h3>Enter Custom Size</h3>
+    <div style='margin: 15px 0;'>
+        <label style='display: block; margin-bottom: 5px;'>Width (px):</label>
+        <input type='number' class='custom-width' value='100' min='10' max='500' style='width: 100%; padding: 5px;'>
+    </div>
+    <div style='margin: 15px 0;'>
+        <label style='display: block; margin-bottom: 5px;'>Height (px):</label>
+        <input type='number' class='custom-height' value='100' min='10' max='500' style='width: 100%; padding: 5px;'>
+    </div>
+    <div style='display: flex; justify-content: space-between;'>
+        <button class='cancel-custom-size' style='padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;'>Cancel</button>
+        <button class='confirm-custom-size' style='padding: 5px 10px; background: #28a745; color: white; border: none; border-radius: 3px; cursor: pointer;'>Print</button>
+    </div>
+</div>
+";
             
             $REGISTRATION_BUTTON = "";
             if (($pets['pet_status'] ?? '') === "accept_by_lgu") {
@@ -149,7 +237,6 @@
             data-pet_antiRabies_vac_date='<?= $pets['pet_antiRabies_vac_date'] ?>'
             data-pet_date_application='<?= $pets['pet_date_application'] ?>'>
         VIEW DETAILS</button>
-        <button class="close-btn">&times;</button>
     </div>
 </div>
 
@@ -159,11 +246,10 @@
         ?>
         
       <?php else: ?>
-          <tr>
-              <td colspan="5" class="p-2">No record found.</td>
-          </tr>
+          <div class="no-results-message" style="display: block;">No pets registered yet.</div>
       <?php endif; ?>
     </div>
+    <div class="no-results-message">No results match your search.</div>
 </section>
 
 <!-- Client Details Modal -->
@@ -175,51 +261,51 @@
         </div>
         <div class="client-modal-body">
             <form id="FrmupdatePetInfo">
-            <label for="client-date-application">Date of Application</label>
+            <label for="client-date-application">Date of Applications</label>
             <input hidden type="text" id="update_pet_id" name="pet_id">
             <input type="text" id="client-date-application" readonly>
 
             <label for="client-name">Name</label>
-            <input type="text" id="client-name" readonly>
+            <input type="text" id="client-name" name="client_name" required>
 
             <label for="client-contact">Contact Number</label>
-            <input type="text" id="client-contact" readonly>
+            <input type="tel" id="client-contact" name="client_contact" required>
 
             <label for="client-email">Email</label>
-            <input type="email" id="client-email" readonly>
+            <input type="email" id="client-email" name="client_email" required>
 
             <label for="client-address">Address</label>
-            <input type="text" id="client-address" readonly>
+            <input type="text" id="client-address" name="client_address" required>
 
             <label for="client-barangay">Barangay</label>
-            <input type="text" id="client-barangay" readonly>
+            <input type="text" id="client-barangay" name="client_barangay"required>
 
             <label for="client-pet-name">Pet Name</label>
-            <input type="text" id="client-pet-name" readonly>
+            <input type="text" id="client-pet-name" name="pet_petname" required>
 
             <label for="client-birthdate">Pet Birthdate</label>
-            <input type="date" id="client-birthdate" readonly>
+            <input type="date" id="client-birthdate" name="pet_birthdate" required>
 
             <label for="client-breed">Breed</label>
-            <input type="text" id="client-breed" readonly>
+            <input type="text" id="client-breed" name="pet_breed" required>
 
             <label for="client-gender">Gender of Pet</label>
-            <input type="text" id="client-gender" readonly>
+            <input type="text" id="client-gender" name="pet_gender" required>
 
             <label for="client-species">Species</label>
-            <input type="text" id="client-species" readonly>
+            <input type="text" id="client-species" name="pet_species" required>
 
             <label for="client-color">Color of Pet</label>
-            <input type="text" id="client-color" readonly>
+            <input type="text" id="client-color" name="pet_color" required>
 
             <label for="client-mark">Distinguishing Marks of Pet</label>
-            <input type="text" id="client-mark" readonly>
+            <input type="text" id="client-mark" name="pet_marks" required>
 
             <label for="client-vaccine-due">Vaccination Due Date</label>
-            <input type="date" id="client-vaccine-due" name="update_client-vaccine-due">
+            <input type="date" id="client-vaccine-due" name="update_client-vaccine-due" required>
 
             <label for="client-vaccine-given">Vaccination Date Given</label>
-            <input type="date" id="client-vaccine-given" name="update_client-vaccine-given">
+            <input type="date" id="client-vaccine-given" name="update_client-vaccine-given" required>
         </div>
         <div class="client-modal-footer">
             <button type="submit" >Save</button>
@@ -279,6 +365,9 @@
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <script>
 $(document).ready(function() {
+    // Initialize no results message
+    $(".no-results-message").hide();
+
     // View Details Modal
     $(".view-details").click(function (e) {
         e.preventDefault();
@@ -378,10 +467,63 @@ $(document).ready(function() {
         });
     });
 
+    // QR code printing - custom size button handler
+$(document).on('click', '.custom-size-btn', function() {
+    const qrSrc = $(this).data('qr-src');
+    $('.custom-size-modal').data('qr-src', qrSrc).fadeIn();
+});
+
+// Confirm custom size
+$(document).on('click', '.confirm-custom-size', function() {
+    const qrSrc = $('.custom-size-modal').data('qr-src');
+    const width = $('.custom-width').val();
+    const height = $('.custom-height').val();
+    
+    printQRCode(qrSrc, width, height);
+    $('.custom-size-modal').fadeOut();
+});
+
+// Cancel custom size
+$(document).on('click', '.cancel-custom-size', function() {
+    $('.custom-size-modal').fadeOut();
+});
+
+// Main print function
+function printQRCode(qrSrc, width, height) {
+    // Close any open modals first
+    $('.approval-modal, .modal').fadeOut();
+    
+    // Create a temporary image element for printing
+    const printImage = new Image();
+    printImage.src = qrSrc;
+    printImage.className = 'qr-print-image';
+    printImage.alt = 'QR Code';
+    printImage.style.width = width + 'px';
+    printImage.style.height = height + 'px';
+    
+    // Add to body
+    document.body.appendChild(printImage);
+    
+    // Small delay to ensure image is loaded
+    setTimeout(() => {
+        window.print();
+    }, 100);
+    
+    // Clean up
+    const cleanUp = () => {
+        if (printImage.parentNode) {
+            document.body.removeChild(printImage);
+        }
+        window.removeEventListener('afterprint', cleanUp);
+    };
+    window.addEventListener('afterprint', cleanUp);
+}
+
     // Search and Filter Functionality
     function filterPets() {
         let selectedStatus = $("#statusFilter").val().toLowerCase();
         let searchQuery = $("#searchBox").val().toLowerCase();
+        let hasVisibleCards = false;
 
         $(".client-card").each(function() {
             let petStatus = $(this).find(".client-details p:contains('Status')").next().text().trim().toLowerCase();
@@ -393,10 +535,18 @@ $(document).ready(function() {
 
             if (statusMatch && searchMatch) {
                 $(this).show();
+                hasVisibleCards = true;
             } else {
                 $(this).hide();
             }
         });
+
+        // Show/hide no results message
+        if (hasVisibleCards || ($(".client-card").length === 0 && searchQuery === "" && selectedStatus === "all")) {
+            $(".no-results-message").hide();
+        } else {
+            $(".no-results-message").show();
+        }
     }
 
     // Apply filtering when status changes
@@ -404,5 +554,8 @@ $(document).ready(function() {
 
     // Apply filtering when typing in the search box
     $("#searchBox").on("input", filterPets);
+
+    // Initial filter to hide message if pets exist
+    filterPets();
 });
 </script>

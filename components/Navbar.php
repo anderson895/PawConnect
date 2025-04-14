@@ -1,9 +1,13 @@
 
 <nav>
-    
     <div class="navbar">
         <i class="bx bx-menu sidebarOpen"></i>
-        <span class="logo navLogo"><a href="index.php?page=/"><img src="assets/imgs/Logo.png" id="logo" alt="Logo"></a></span>
+        <span class="logo navLogo">
+            <a href="index.php?page=/" style="display: flex; align-items: center; text-decoration: none;">
+                <img src="assets/imgs/Logo.png" id="logo" alt="Logo">
+                <span style="margin-left: 10px; font-weight: bold; font-size: 1.2rem;">PET OWNER</span>
+            </a>
+        </span>
         <div class="menu">
             <div class="logo-toggle">
                 <span class="logo"><a href="index.php?page=/"><span>My</span>Pet</a></span>
@@ -15,7 +19,7 @@
                 <li><a href="index.php?page=MyPets">Pets</a></li>
                 <li><a href="index.php?page=ImpoundedPets">Impounded</a></li>
                 <li><a href="index.php?page=info">Info</a></li>
-                <li><a href="index.php?page=aboutus">About Us</a></li>
+                <li><a href="index.php?page=AboutUs">Contact Us</a></li>
             </ul>
         </div>
         <div class="darkLight-searchBox">

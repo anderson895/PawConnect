@@ -1,21 +1,24 @@
 <nav>
-    
     <div class="navbar">
         <i class="bx bx-menu sidebarOpen"></i>
-        <span class="logo navLogo"><a href="index.php?lgupages=lguhome"><img src="assets/imgs/Logo.png" id="logo" alt="Logo"></a></span>
+        <span class="logo navLogo">
+            <a href="index.php?lgupages=lguhome" style="display: flex; align-items: center; text-decoration: none;">
+                <img src="assets/imgs/Logo.png" id="logo" alt="Logo">
+                <span style="margin-left: 10px; font-weight: bold; font-size: 1.2rem;">LGU</span>
+            </a>
+        </span>
         <div class="menu">
             <div class="logo-toggle">
                 <span class="logo"><a href="#"><span>My</span>Pet</a></span>
                 <i class="bx bx-x sidebarClose"></i>
             </div>
             <ul class="nav-links">
-                <li><a href="index.php?lgupages=lguhome">Home</a></li>
+                <li><a href="index.php?lgupages=LGUHome">Home</a></li>
                 <li><a href="index.php?lgupages=vetId">Vets</a></li>
-                <li><a href="index.php?lgupages=registeredpets">Pets</a></li>
-                <li><a href="index.php?lgupages=impounded">Impounded</a></li>
-                <li><a href="index.php?lgupages=lguapprovals">Approvals</a></li>
-                <li><a href="index.php?lgupages=AboutUs">About Us</a></li>
-
+                <li><a href="index.php?lgupages=Registeredpets">Pets</a></li>
+                <li><a href="index.php?lgupages=Impounded">Impounded</a></li>
+                <li><a href="index.php?lgupages=LGUapprovals">Approvals</a></li>
+                <li><a href="index.php?lgupages=AboutUs">Contact Us</a></li>
             </ul>
         </div>
         <div class="darkLight-searchBox">

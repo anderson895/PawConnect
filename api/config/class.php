@@ -9,9 +9,24 @@ class global_class extends db_connect
         $this->connect();
     }
 
-        // Check if email exists
-        public function get_vaccination_history($petId)
-        {
+public function DeletePet($pet_id) {
+        $status = 0; 
+        
+        $query = $this->conn->prepare(
+            "UPDATE `pets_info` SET `pet_display_status` = ? WHERE `pet_id` = ?"
+        );
+        $query->bind_param("is", $status, $pet_id);
+        
+        if ($query->execute()) {
+            return 'success';
+        } else {
+            return 'Error: ' . $query->error;
+        }
+}
+
+
+public function get_vaccination_history($petId)
+{
             $query = "SELECT * FROM pets_info_history_update WHERE ph_pet_id = ? ORDER BY ph_update_at DESC";
             $stmt = $this->conn->prepare($query);
     
@@ -28,7 +43,7 @@ class global_class extends db_connect
     
             $result = $stmt->get_result();
             return $result;
-        }
+}
 
 
 
@@ -253,6 +268,8 @@ public function UpdatePassword($hashedPassword, $email) {
             $stmt->close();
             return [
                 'PET ID' => $insertedId,
+                'vaccination_date' => $vaccinationDate,
+                'vaccination_expiry' => $vaccinationExpiry,
                 'date application' => $dateApplication,
                 'name applicant' => $nameApplicant,
                 'age' => $age,
@@ -270,8 +287,6 @@ public function UpdatePassword($hashedPassword, $email) {
                 'pet color' => $petColor,
                 'distinguishing_marks' => $distinguishingMarks,
                 'pet birthday' => $petBirthday,
-                'vaccination_date' => $vaccinationDate,
-                'vaccination_expiry' => $vaccinationExpiry,
                 'vet clinic' => $vetClinic,
                 'vet name' => $vetName,
                 'vet address' => $vetAddress,
@@ -559,7 +574,7 @@ public function UpdatePassword($hashedPassword, $email) {
 
 
 
-    public function updatePetInfo($pet_id, $vaccine_given, $vaccine_due)
+    public function updatePetInfo($pet_id, $vaccine_given, $vaccine_due, $client_name, $client_contact, $client_email,$client_address,$client_barangay,$pet_petname,$pet_birthdate,$pet_breed,$pet_gender, $pet_species,$pet_color,$pet_marks)
 {
     // Fetch the previous vaccination dates before updating
     $query = $this->conn->prepare("SELECT pet_antiRabies_vac_date, pet_antiRabies_expi_date FROM pets_info WHERE pet_id = ?");
@@ -578,9 +593,16 @@ public function UpdatePassword($hashedPassword, $email) {
         $history_stmt->execute();
     }
 
-    // Update pet's vaccine records
-    $stmt = $this->conn->prepare("UPDATE pets_info SET pet_antiRabies_expi_date = ?, pet_antiRabies_vac_date = ? WHERE pet_id = ?");
-    $stmt->bind_param("sss", $vaccine_due, $vaccine_given, $pet_id);
+    // Before binding, ensure phone is 11 digits
+$client_contact = preg_replace('/\D/', '', $client_contact); // Remove non-digits
+if (strlen($client_contact) !== 11 || !ctype_digit($client_contact)) {
+    echo json_encode(['status' => 'error', 'message' => 'Phone must be 11 digits']);
+    exit;
+}
+
+    // Update pet's records
+    $stmt = $this->conn->prepare("UPDATE pets_info SET pet_antiRabies_expi_date = ?, pet_antiRabies_vac_date = ?, pet_owner_name = ?, pet_owner_telMobile =?, pet_owner_email =?, pet_owner_home_address=?, pet_owner_barangay=?, pet_name=?, pet_birthday=?, pet_breed=?, pet_gender=?, pet_species=?, pet_color=?, pet_marks=?  WHERE pet_id = ?");
+    $stmt->bind_param("sssssssssssssss", $vaccine_due, $vaccine_given, $client_name, $client_contact,$client_email, $client_address, $client_barangay, $pet_petname, $pet_birthdate, $pet_breed, $pet_gender, $pet_species,$pet_color, $pet_marks, $pet_id);
 
     if ($stmt->execute()) {
         echo json_encode(['status' => 'success']);
@@ -933,7 +955,7 @@ public function UpdatePassword($hashedPassword, $email) {
 
     public function fetch_pets_info($UserID)
     {
-        $query = $this->conn->prepare("SELECT * from pets_info where pets_UserID='$UserID' ORDER BY `pet_id` DESC");
+        $query = $this->conn->prepare("SELECT * from pets_info where pets_UserID='$UserID' AND pet_display_status=1 ORDER BY `pet_id` DESC");
 
         if ($query->execute()) {
             $result = $query->get_result();
@@ -945,7 +967,7 @@ public function UpdatePassword($hashedPassword, $email) {
 
     public function fetch_all_pets_info()
     {
-        $query = $this->conn->prepare("SELECT * from pets_info where pet_status ='accept_by_lgu' OR pet_status ='declined_by_lgu' OR pet_status ='declined_by_vet' OR pet_status ='accept_by_vet'");
+        $query = $this->conn->prepare("SELECT * from pets_info where (pet_status ='accept_by_lgu' OR pet_status ='declined_by_lgu' OR pet_status ='declined_by_vet' OR pet_status ='accept_by_vet')AND pet_display_status=1");
 
         if ($query->execute()) {
             $result = $query->get_result();
@@ -956,7 +978,7 @@ public function UpdatePassword($hashedPassword, $email) {
 
     public function fetch_lgu_registered_pet()
     {
-        $query = $this->conn->prepare("SELECT * from pets_info where pet_status ='accept_by_lgu' OR pet_status ='declined_by_lgu'");
+        $query = $this->conn->prepare("SELECT * from pets_info where (pet_status ='accept_by_lgu' OR pet_status ='declined_by_lgu') AND pet_display_status=1");
 
         if ($query->execute()) {
             $result = $query->get_result();
